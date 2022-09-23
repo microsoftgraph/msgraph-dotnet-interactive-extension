@@ -1,5 +1,7 @@
 # Microsoft Graph extension for .NET Interactive Notebooks
 
+[![.NET](https://github.com/microsoftgraph/msgraph-dotnet-interactive-extension/actions/workflows/dotnet.yml/badge.svg)](https://github.com/microsoftgraph/msgraph-dotnet-interactive-extension/actions/workflows/dotnet.yml) ![License.](https://img.shields.io/badge/license-MIT-green.svg)
+
 Sample implementation of Microsoft Graph magic command / extension for .Net Interactive.
 
 ## Test notebook
