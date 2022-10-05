@@ -16,8 +16,6 @@ namespace Microsoft.DotNet.Interactive.MicrosoftGraph;
 /// </summary>
 public class MicrosoftGraphKernelExtension : IKernelExtension
 {
-    private static string[] scopes = new[] { "https://graph.microsoft.com/.default" };
-
     /// <summary>
     /// Main entry point to extension, invoked via
     /// "#!microsoftgraph".
@@ -50,6 +48,10 @@ public class MicrosoftGraphKernelExtension : IKernelExtension
             new[] { "-a", "--authentication-flow" },
             description: "Azure Active Directory authentication flow to use.",
             getDefaultValue: () => AuthenticationFlow.InteractiveBrowser);
+        var nationalCloud = new Option<NationalCloud>(
+            new[] { "-nc", "--national-cloud" },
+            description: "National cloud for authentication and Microsoft Graph service root endpoint.",
+            getDefaultValue: () => NationalCloud.Global);
 
         var graphCommand = new Command("#!microsoftgraph", "Send Microsoft Graph requests using the specified permission flow.")
         {
@@ -58,14 +60,24 @@ public class MicrosoftGraphKernelExtension : IKernelExtension
             clientSecretOption,
             scopeNameOption,
             authenticationFlowOption,
+            nationalCloud,
         };
 
         graphCommand.SetHandler(
-            async (string tenantId, string clientId, string clientSecret, string scopeName, AuthenticationFlow authenticationFlow) =>
+            async (string tenantId, string clientId, string clientSecret, string scopeName, AuthenticationFlow authenticationFlow, NationalCloud nationalCloud) =>
             {
                 var tokenCredential = CredentialProvider.GetTokenCredential(
-                    authenticationFlow, tenantId, clientId, clientSecret);
-                var graphServiceClient = new GraphServiceClient(tokenCredential, scopes);
+                    authenticationFlow, tenantId, clientId, clientSecret, nationalCloud);
+                var graphServiceClient = new GraphServiceClient(tokenCredential, Scopes.GetScopes(nationalCloud));
+                switch (nationalCloud)
+                {
+                    case NationalCloud.USGov:
+                        graphServiceClient.BaseUrl = "https://graph.microsoft.us/v1.0";
+                        break;
+                    default:
+                        break;
+                }
+
                 await cSharpKernel.SetValueAsync(scopeName, graphServiceClient, typeof(GraphServiceClient));
                 KernelInvocationContextExtensions.Display(KernelInvocationContext.Current, $"Graph client declared with name: {scopeName}");
             },
@@ -73,7 +85,8 @@ public class MicrosoftGraphKernelExtension : IKernelExtension
             clientIdOption,
             clientSecretOption,
             scopeNameOption,
-            authenticationFlowOption);
+            authenticationFlowOption,
+            nationalCloud);
 
         cSharpKernel.AddDirective(graphCommand);
 
