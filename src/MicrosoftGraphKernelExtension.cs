@@ -74,6 +74,9 @@ public class MicrosoftGraphKernelExtension : IKernelExtension
                     case NationalCloud.USGov:
                         graphServiceClient.BaseUrl = "https://graph.microsoft.us/v1.0";
                         break;
+                    case NationalCloud.USGovDoD:
+                        graphServiceClient.BaseUrl = "https://dod-graph.microsoft.us/v1.0";
+                        break;
                     default:
                         break;
                 }
