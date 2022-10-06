@@ -48,7 +48,7 @@ public class MicrosoftGraphKernelExtension : IKernelExtension
             new[] { "-a", "--authentication-flow" },
             description: "Azure Active Directory authentication flow to use.",
             getDefaultValue: () => AuthenticationFlow.InteractiveBrowser);
-        var nationalCloud = new Option<NationalCloud>(
+        var nationalCloudOption = new Option<NationalCloud>(
             new[] { "-nc", "--national-cloud" },
             description: "National cloud for authentication and Microsoft Graph service root endpoint.",
             getDefaultValue: () => NationalCloud.Global);
@@ -60,7 +60,7 @@ public class MicrosoftGraphKernelExtension : IKernelExtension
             clientSecretOption,
             scopeNameOption,
             authenticationFlowOption,
-            nationalCloud,
+            nationalCloudOption,
         };
 
         graphCommand.SetHandler(
@@ -89,7 +89,7 @@ public class MicrosoftGraphKernelExtension : IKernelExtension
             clientSecretOption,
             scopeNameOption,
             authenticationFlowOption,
-            nationalCloud);
+            nationalCloudOption);
 
         cSharpKernel.AddDirective(graphCommand);
 
