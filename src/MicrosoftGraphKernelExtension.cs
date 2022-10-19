@@ -1,12 +1,14 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+extern alias BetaLib;
+
 using System.CommandLine;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.DotNet.Interactive.Commands;
 using Microsoft.DotNet.Interactive.CSharp;
-using Microsoft.Graph;
+using Beta = BetaLib.Microsoft.Graph.Beta;
 
 namespace Microsoft.DotNet.Interactive.MicrosoftGraph;
 
@@ -48,10 +50,14 @@ public class MicrosoftGraphKernelExtension : IKernelExtension
             new[] { "-a", "--authentication-flow" },
             description: "Azure Active Directory authentication flow to use.",
             getDefaultValue: () => AuthenticationFlow.InteractiveBrowser);
-        var nationalCloud = new Option<NationalCloud>(
+        var nationalCloudOption = new Option<NationalCloud>(
             new[] { "-nc", "--national-cloud" },
             description: "National cloud for authentication and Microsoft Graph service root endpoint.",
             getDefaultValue: () => NationalCloud.Global);
+        var apiVersionOption = new Option<ApiVersion>(
+            new[] { "-v", "--api-version" },
+            description: "Microsoft Graph API version.",
+            getDefaultValue: () => ApiVersion.V1);
 
         var graphCommand = new Command("#!microsoftgraph", "Send Microsoft Graph requests using the specified permission flow.")
         {
@@ -60,28 +66,29 @@ public class MicrosoftGraphKernelExtension : IKernelExtension
             clientSecretOption,
             scopeNameOption,
             authenticationFlowOption,
-            nationalCloud,
+            nationalCloudOption,
+            apiVersionOption,
         };
 
         graphCommand.SetHandler(
-            async (string tenantId, string clientId, string clientSecret, string scopeName, AuthenticationFlow authenticationFlow, NationalCloud nationalCloud) =>
+            async (string tenantId, string clientId, string clientSecret, string scopeName, AuthenticationFlow authenticationFlow, NationalCloud nationalCloud, ApiVersion apiVersion) =>
             {
                 var tokenCredential = CredentialProvider.GetTokenCredential(
                     authenticationFlow, tenantId, clientId, clientSecret, nationalCloud);
-                var graphServiceClient = new GraphServiceClient(tokenCredential, Scopes.GetScopes(nationalCloud));
+                var graphServiceClient = new Beta.GraphServiceClient(tokenCredential, Scopes.GetScopes(nationalCloud));
                 switch (nationalCloud)
                 {
                     case NationalCloud.USGov:
-                        graphServiceClient.BaseUrl = "https://graph.microsoft.us/v1.0";
+                        //graphServiceClient.BaseUrl = "https://graph.microsoft.us/v1.0";
                         break;
                     case NationalCloud.USGovDoD:
-                        graphServiceClient.BaseUrl = "https://dod-graph.microsoft.us/v1.0";
+                        //graphServiceClient.BaseUrl = "https://dod-graph.microsoft.us/v1.0";
                         break;
                     default:
                         break;
                 }
 
-                await cSharpKernel.SetValueAsync(scopeName, graphServiceClient, typeof(GraphServiceClient));
+                await cSharpKernel.SetValueAsync(scopeName, graphServiceClient, typeof(Beta.GraphServiceClient));
                 KernelInvocationContextExtensions.Display(KernelInvocationContext.Current, $"Graph client declared with name: {scopeName}");
             },
             tenantIdOption,
@@ -89,7 +96,8 @@ public class MicrosoftGraphKernelExtension : IKernelExtension
             clientSecretOption,
             scopeNameOption,
             authenticationFlowOption,
-            nationalCloud);
+            nationalCloudOption,
+            apiVersionOption);
 
         cSharpKernel.AddDirective(graphCommand);
 
