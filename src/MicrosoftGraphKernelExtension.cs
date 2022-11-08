@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.DotNet.Interactive.Commands;
 using Microsoft.DotNet.Interactive.CSharp;
+using Microsoft.Graph;
 using Beta = BetaLib.Microsoft.Graph.Beta;
 
 namespace Microsoft.DotNet.Interactive.MicrosoftGraph;
@@ -76,10 +77,22 @@ public class MicrosoftGraphKernelExtension : IKernelExtension
                 var tokenCredential = CredentialProvider.GetTokenCredential(
                     authenticationFlow, tenantId, clientId, clientSecret, nationalCloud);
 
-                var graphServiceClient = new Beta.GraphServiceClient(tokenCredential, Scopes.GetScopes(nationalCloud));
-                graphServiceClient.RequestAdapter.BaseUrl = BaseUrl.GetBaseUrl(nationalCloud, apiVersion);
+                switch (apiVersion)
+                {
+                    case ApiVersion.V1:
+                        // var graphServiceClient = new GraphServiceClient(tokenCredential, Scopes.GetScopes(nationalCloud));
+                        // graphServiceClient.BaseUrl = BaseUrl.GetBaseUrl(nationalCloud, apiVersion);
+                        // await cSharpKernel.SetValueAsync(scopeName, graphServiceClient, typeof(GraphServiceClient));
+                        break;
+                    case ApiVersion.Beta:
+                        var graphServiceClientBeta = new Beta.GraphServiceClient(tokenCredential, Scopes.GetScopes(nationalCloud));
+                        graphServiceClientBeta.RequestAdapter.BaseUrl = BaseUrl.GetBaseUrl(nationalCloud, apiVersion);
+                        await cSharpKernel.SetValueAsync(scopeName, graphServiceClientBeta, typeof(Beta.GraphServiceClient));
+                        break;
+                    default:
+                        break;
+                }
 
-                await cSharpKernel.SetValueAsync(scopeName, graphServiceClient, typeof(Beta.GraphServiceClient));
                 KernelInvocationContextExtensions.Display(KernelInvocationContext.Current, $"Graph client declared with name: {scopeName}");
             },
             tenantIdOption,
