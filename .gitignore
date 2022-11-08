@@ -12,3 +12,4 @@ bld/
 
 # test .Net Interactive notebook
 *.ipynb
+!demo.ipynb
