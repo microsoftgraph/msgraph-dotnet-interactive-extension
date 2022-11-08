@@ -75,18 +75,9 @@ public class MicrosoftGraphKernelExtension : IKernelExtension
             {
                 var tokenCredential = CredentialProvider.GetTokenCredential(
                     authenticationFlow, tenantId, clientId, clientSecret, nationalCloud);
+
                 var graphServiceClient = new Beta.GraphServiceClient(tokenCredential, Scopes.GetScopes(nationalCloud));
-                switch (nationalCloud)
-                {
-                    case NationalCloud.USGov:
-                        //graphServiceClient.BaseUrl = "https://graph.microsoft.us/v1.0";
-                        break;
-                    case NationalCloud.USGovDoD:
-                        //graphServiceClient.BaseUrl = "https://dod-graph.microsoft.us/v1.0";
-                        break;
-                    default:
-                        break;
-                }
+                graphServiceClient.RequestAdapter.BaseUrl = BaseUrl.GetBaseUrl(nationalCloud, apiVersion);
 
                 await cSharpKernel.SetValueAsync(scopeName, graphServiceClient, typeof(Beta.GraphServiceClient));
                 KernelInvocationContextExtensions.Display(KernelInvocationContext.Current, $"Graph client declared with name: {scopeName}");
