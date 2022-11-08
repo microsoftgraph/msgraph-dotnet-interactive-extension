@@ -80,9 +80,9 @@ public class MicrosoftGraphKernelExtension : IKernelExtension
                 switch (apiVersion)
                 {
                     case ApiVersion.V1:
-                        // var graphServiceClient = new GraphServiceClient(tokenCredential, Scopes.GetScopes(nationalCloud));
-                        // graphServiceClient.BaseUrl = BaseUrl.GetBaseUrl(nationalCloud, apiVersion);
-                        // await cSharpKernel.SetValueAsync(scopeName, graphServiceClient, typeof(GraphServiceClient));
+                        var graphServiceClient = new GraphServiceClient(tokenCredential, Scopes.GetScopes(nationalCloud));
+                        graphServiceClient.RequestAdapter.BaseUrl = BaseUrl.GetBaseUrl(nationalCloud, apiVersion);
+                        await cSharpKernel.SetValueAsync(scopeName, graphServiceClient, typeof(GraphServiceClient));
                         break;
                     case ApiVersion.Beta:
                         var graphServiceClientBeta = new Beta.GraphServiceClient(tokenCredential, Scopes.GetScopes(nationalCloud));
