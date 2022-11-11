@@ -47,9 +47,9 @@ Console.WriteLine($"Me: {me.DisplayName}, {me.UserPrincipalName}");
 
 ```csharp
 var users = await gcDeviceCode.Users.Request()
-.Top(5)
-.Select(u => new {u.DisplayName, u.UserPrincipalName})
-.GetAsync();
+    .Top(5)
+    .Select(u => new {u.DisplayName, u.UserPrincipalName})
+    .GetAsync();
 
 users.Select(u => new {u.DisplayName, u.UserPrincipalName})
 ```
@@ -63,11 +63,11 @@ new QueryOption("$count", "true")
 };
 
 var applications = await gcClientCredential.Applications
-.Request( queryOptions )
-.Header("ConsistencyLevel","eventual")
-.Top(5)
-.Select(a => new {a.AppId, a.DisplayName})
-.GetAsync();
+    .Request( queryOptions )
+    .Header("ConsistencyLevel","eventual")
+    .Top(5)
+    .Select(a => new {a.AppId, a.DisplayName})
+    .GetAsync();
 
 applications.Select(a => new {a.AppId, a.DisplayName})
 ```
