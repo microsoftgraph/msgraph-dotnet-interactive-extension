@@ -50,7 +50,7 @@ As an alternative to passing client ID, client secret, and tenant ID as paramete
 {
   "clientId": "YOUR_CLIENT_ID",
   "clientSecret": "YOUR_CLIENT_SECRET",
-  "tenantId": "YOUR_TENANT_ID
+  "tenantId": "YOUR_TENANT_ID"
 }
 ```
 
