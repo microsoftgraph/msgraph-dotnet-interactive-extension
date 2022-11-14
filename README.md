@@ -36,6 +36,24 @@ Instantiate new connections to Microsoft Graph (using each authentication flow),
 #!microsoftgraph --authentication-flow ClientCredential --scope-name gcClientCredential --tenant-id <tenantId> --client-id <clientId> --client-secret <clientSecret>
 ```
 
+#### Settings file
+
+As an alternative to passing client ID, client secret, and tenant ID as parameters to the magic command, you can put any or all of them into a JSON file and pass the path to that file in the `--config-file` parameter. Values passed in explicit parameters will override values in the JSON file.
+
+```csharp
+#!microsoftgraph --authentication-flow ClientCredential --scope-name gcClientCredential ---configFile "./settings.json"
+```
+
+##### File schema
+
+```json
+{
+  "clientId": "YOUR_CLIENT_ID",
+  "clientSecret": "YOUR_CLIENT_SECRET",
+  "tenantId": "YOUR_TENANT_ID
+}
+```
+
 ### Interactive Browser sample snippet
 
 ```csharp
