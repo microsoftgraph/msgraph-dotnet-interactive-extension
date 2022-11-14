@@ -1,15 +1,13 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-extern alias BetaLib;
-
 using System.CommandLine;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.DotNet.Interactive.Commands;
 using Microsoft.DotNet.Interactive.CSharp;
 using Microsoft.Graph;
-using Beta = BetaLib.Microsoft.Graph.Beta;
+using Beta = Microsoft.Graph.Beta;
 
 namespace Microsoft.DotNet.Interactive.MicrosoftGraph;
 
