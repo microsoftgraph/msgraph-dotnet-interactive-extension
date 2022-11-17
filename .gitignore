@@ -13,3 +13,9 @@ bld/
 # test .Net Interactive notebook
 *.ipynb
 !demo.ipynb
+
+# Certificates
+*.cer
+
+# Settings JSON file
+appregistration.json

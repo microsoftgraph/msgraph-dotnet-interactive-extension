@@ -19,22 +19,18 @@ namespace Microsoft.DotNet.Interactive.MicrosoftGraph
         /// Gets the TokenCredential based on the requested authentication flow.
         /// </summary>
         /// <param name="authenticationFlow">The requested authentication flow.</param>
-        /// <param name="tenantId">Tenant ID for single-tenant apps, or "common" for multi-tenant.</param>
-        /// <param name="clientId">The client ID from the app registration in Azure portal.</param>
-        /// <param name="clientSecret">The client secret (only applicable to ClientCredential flow).</param>
+        /// <param name="credentialOptions">The client ID, client secret, and tenant ID from the app registration in Azure portal.</param>
         /// <param name="nationalCloud">The national cloud for authentication and Microsoft Graph service root endpoint.</param>
         /// <returns>The requested TokenCredential.</returns>
         /// <exception cref="ArgumentOutOfRangeException">The requested authentication flow was invalid.</exception>
         public static TokenCredential GetTokenCredential(
             AuthenticationFlow authenticationFlow,
-            string tenantId,
-            string clientId,
-            string clientSecret,
+            CredentialOptions credentialOptions,
             NationalCloud nationalCloud) => authenticationFlow switch
             {
-                AuthenticationFlow.ClientCredential => GetClientSecretCredential(tenantId, clientId, clientSecret, nationalCloud),
-                AuthenticationFlow.DeviceCode => GetDeviceCodeCredential(tenantId, clientId, nationalCloud),
-                AuthenticationFlow.InteractiveBrowser => GetInteractiveBrowserCredential(tenantId, clientId, nationalCloud),
+                AuthenticationFlow.ClientCredential => GetClientSecretCredential(credentialOptions.TenantId, credentialOptions.ClientId, credentialOptions.ClientSecret, nationalCloud),
+                AuthenticationFlow.DeviceCode => GetDeviceCodeCredential(credentialOptions.TenantId, credentialOptions.ClientId, nationalCloud),
+                AuthenticationFlow.InteractiveBrowser => GetInteractiveBrowserCredential(credentialOptions.TenantId, credentialOptions.ClientId, nationalCloud),
                 _ => throw new ArgumentOutOfRangeException(
                     nameof(authenticationFlow),
                     $"Unexpected authenticationFlow value: {authenticationFlow}"),
