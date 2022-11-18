@@ -2,9 +2,6 @@
 // Licensed under the MIT License.
 
 using System.CommandLine;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.DotNet.Interactive.Commands;
 using Microsoft.DotNet.Interactive.CSharp;
 using Microsoft.Graph;
@@ -32,17 +29,25 @@ public class MicrosoftGraphKernelExtension : IKernelExtension
         }
 
         var cSharpKernel = cs.ChildKernels.OfType<CSharpKernel>().FirstOrDefault();
+        if (cSharpKernel == null)
+        {
+            return Task.CompletedTask;
+        }
 
         var tenantIdOption = new Option<string>(
             new[] { "-t", "--tenant-id" },
-            description: "Directory (tenant) ID in Azure Active Directory.");
+            description: "Directory (tenant) ID in Azure Active Directory.",
+            getDefaultValue: () => "common");
         var clientIdOption = new Option<string>(
             new[] { "-c", "--client-id" },
-            description: "Application (client) ID registered in Azure Active Directory.");
-        var clientSecretOption = new Option<string>(
+            description: "Application (client) ID registered in Azure Active Directory.")
+            {
+                IsRequired = true
+            };
+        var clientSecretOption = new Option<string?>(
             new[] { "-s", "--client-secret" },
             description: "Application (client) secret registered in Azure Active Directory.");
-        var configFileOption = new Option<string>(
+        var configFileOption = new Option<string?>(
             new[] { "-f", "--config-file" },
             description: "JSON file containing any combination of tenant ID, client ID, and client secret. Values are only used if corresponding option is not passed to the magic command.",
             parseArgument: result =>
@@ -91,8 +96,9 @@ public class MicrosoftGraphKernelExtension : IKernelExtension
         };
 
         graphCommand.SetHandler(
-            async (string tenantId, string clientId, string clientSecret, string configFile, string scopeName, AuthenticationFlow authenticationFlow, NationalCloud nationalCloud, ApiVersion apiVersion) =>
+            async (string tenantId, string clientId, string? clientSecret, string? configFile, string scopeName, AuthenticationFlow authenticationFlow, NationalCloud nationalCloud, ApiVersion apiVersion) =>
             {
+                KernelInvocationContextExtensions.Display(KernelInvocationContext.Current, $"clientSecret is {(clientSecret == null ? "NULL" : "NOT NULL")}");
                 // Combine options to get app registration details
                 var credentialOptions = CredentialOptions.GetCredentialOptions(tenantId, clientId, clientSecret, configFile);
 
