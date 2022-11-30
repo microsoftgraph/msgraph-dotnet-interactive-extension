@@ -18,4 +18,4 @@ bld/
 *.cer
 
 # Settings JSON file
-appregistration.json
+*appregistration.json

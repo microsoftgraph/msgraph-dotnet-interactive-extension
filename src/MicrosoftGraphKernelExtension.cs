@@ -2,9 +2,6 @@
 // Licensed under the MIT License.
 
 using System.CommandLine;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.DotNet.Interactive.Commands;
 using Microsoft.DotNet.Interactive.CSharp;
 using Microsoft.Graph;
@@ -32,58 +29,54 @@ public class MicrosoftGraphKernelExtension : IKernelExtension
         }
 
         var cSharpKernel = cs.ChildKernels.OfType<CSharpKernel>().FirstOrDefault();
+        if (cSharpKernel == null)
+        {
+            return Task.CompletedTask;
+        }
 
-        var tenantIdOption = new Option<string>(
-            new[] { "-t", "--tenant-id" },
-            description: "Directory (tenant) ID in Azure Active Directory.");
-        var clientIdOption = new Option<string>(
-            new[] { "-c", "--client-id" },
+        Option<string?> clientIdOption = new(
+            new[] { "--client-id", "-c" },
             description: "Application (client) ID registered in Azure Active Directory.");
-        var clientSecretOption = new Option<string>(
-            new[] { "-s", "--client-secret" },
+
+        Option<string> tenantIdOption = new(
+            new[] { "--tenant-id", "-t" },
+            description: "Directory (tenant) ID in Azure Active Directory.",
+            getDefaultValue: () => "common");
+
+        Option<string?> clientSecretOption = new(
+            new[] { "--client-secret", "-s" },
             description: "Application (client) secret registered in Azure Active Directory.");
-        var configFileOption = new Option<string>(
-            new[] { "-f", "--config-file" },
-            description: "JSON file containing any combination of tenant ID, client ID, and client secret. Values are only used if corresponding option is not passed to the magic command.",
-            parseArgument: result =>
-            {
-                if (result.Tokens.Count == 0)
-                {
-                    return null;
-                }
 
-                var filePath = Path.GetFullPath(result.Tokens.Single().Value);
-                if (!File.Exists(filePath))
-                {
-                    result.ErrorMessage = "File does not exist";
-                    return null;
-                }
+        Option<FileInfo> configFileOption = new(
+            new[] { "--config-file", "-f" },
+            description: "JSON file containing any combination of tenant ID, client ID, and client secret. Values are only used if corresponding option is not passed to the magic command.");
 
-                return filePath;
-            });
-        var scopeNameOption = new Option<string>(
-            new[] { "-n", "--scope-name" },
+        Option<string> scopeNameOption = new(
+            new[] { "--scope-name", "-n" },
             description: "Scope name for Microsoft Graph connection.",
             getDefaultValue: () => "graphClient");
-        var authenticationFlowOption = new Option<AuthenticationFlow>(
-            new[] { "-a", "--authentication-flow" },
+
+        Option<AuthenticationFlow> authenticationFlowOption = new(
+            new[] { "--authentication-flow", "-a" },
             description: "Azure Active Directory authentication flow to use.",
             getDefaultValue: () => AuthenticationFlow.InteractiveBrowser);
-        var nationalCloudOption = new Option<NationalCloud>(
-            new[] { "-nc", "--national-cloud" },
+
+        Option<NationalCloud> nationalCloudOption = new(
+            new[] { "--national-cloud", "-nc" },
             description: "National cloud for authentication and Microsoft Graph service root endpoint.",
             getDefaultValue: () => NationalCloud.Global);
-        var apiVersionOption = new Option<ApiVersion>(
-            new[] { "-v", "--api-version" },
+
+        Option<ApiVersion> apiVersionOption = new(
+            new[] { "--api-version", "-v" },
             description: "Microsoft Graph API version.",
             getDefaultValue: () => ApiVersion.V1);
 
-        var graphCommand = new Command("#!microsoftgraph", "Send Microsoft Graph requests using the specified permission flow.")
+        Command graphCommand = new("#!microsoftgraph", "Send Microsoft Graph requests using the specified permission flow.")
         {
-            tenantIdOption,
             clientIdOption,
+            tenantIdOption,
             clientSecretOption,
-            configFileOption,
+            configFileOption.ExistingOnly(),
             scopeNameOption,
             authenticationFlowOption,
             nationalCloudOption,
@@ -91,10 +84,19 @@ public class MicrosoftGraphKernelExtension : IKernelExtension
         };
 
         graphCommand.SetHandler(
-            async (string tenantId, string clientId, string clientSecret, string configFile, string scopeName, AuthenticationFlow authenticationFlow, NationalCloud nationalCloud, ApiVersion apiVersion) =>
+            async (CredentialOptions credentialOptions, string scopeName, AuthenticationFlow authenticationFlow, NationalCloud nationalCloud, ApiVersion apiVersion) =>
             {
-                // Combine options to get app registration details
-                var credentialOptions = CredentialOptions.GetCredentialOptions(tenantId, clientId, clientSecret, configFile);
+                try
+                {
+                    credentialOptions.ValidateOptionsForFlow(authenticationFlow);
+                }
+                catch (AggregateException ex)
+                {
+                    KernelInvocationContextExtensions.DisplayStandardError(
+                        KernelInvocationContext.Current,
+                        $"INVALID INPUT: {ex.Message}");
+                    return;
+                }
 
                 var tokenCredential = CredentialProvider.GetTokenCredential(
                     authenticationFlow, credentialOptions, nationalCloud);
@@ -102,12 +104,12 @@ public class MicrosoftGraphKernelExtension : IKernelExtension
                 switch (apiVersion)
                 {
                     case ApiVersion.V1:
-                        var graphServiceClient = new GraphServiceClient(tokenCredential, Scopes.GetScopes(nationalCloud));
+                        GraphServiceClient graphServiceClient = new(tokenCredential, Scopes.GetScopes(nationalCloud));
                         graphServiceClient.RequestAdapter.BaseUrl = BaseUrl.GetBaseUrl(nationalCloud, apiVersion);
                         await cSharpKernel.SetValueAsync(scopeName, graphServiceClient, typeof(GraphServiceClient));
                         break;
                     case ApiVersion.Beta:
-                        var graphServiceClientBeta = new Beta.GraphServiceClient(tokenCredential, Scopes.GetScopes(nationalCloud));
+                        Beta.GraphServiceClient graphServiceClientBeta = new(tokenCredential, Scopes.GetScopes(nationalCloud));
                         graphServiceClientBeta.RequestAdapter.BaseUrl = BaseUrl.GetBaseUrl(nationalCloud, apiVersion);
                         await cSharpKernel.SetValueAsync(scopeName, graphServiceClientBeta, typeof(Beta.GraphServiceClient));
                         break;
@@ -117,10 +119,7 @@ public class MicrosoftGraphKernelExtension : IKernelExtension
 
                 KernelInvocationContextExtensions.Display(KernelInvocationContext.Current, $"Graph client declared with name: {scopeName}");
             },
-            tenantIdOption,
-            clientIdOption,
-            clientSecretOption,
-            configFileOption,
+            new CredentialOptionsBinder(clientIdOption, tenantIdOption, clientSecretOption, configFileOption),
             scopeNameOption,
             authenticationFlowOption,
             nationalCloudOption,

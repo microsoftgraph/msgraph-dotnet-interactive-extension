@@ -1,26 +1,25 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Microsoft.DotNet.Interactive.MicrosoftGraph
+namespace Microsoft.DotNet.Interactive.MicrosoftGraph;
+
+/// <summary>
+/// Supported national clouds.
+/// </summary>
+public enum NationalCloud
 {
     /// <summary>
-    /// Supported national clouds.
+    /// Microsoft Graph global service.
     /// </summary>
-    public enum NationalCloud
-    {
-        /// <summary>
-        /// Microsoft Graph global service.
-        /// </summary>
-        Global,
+    Global,
 
-        /// <summary>
-        /// Microsoft Graph for US Government L4.
-        /// </summary>
-        USGov,
+    /// <summary>
+    /// Microsoft Graph for US Government L4.
+    /// </summary>
+    USGov,
 
-        /// <summary>
-        /// Microsoft Graph for US Government L5 (DOD).
-        /// </summary>
-        USGovDoD,
-    }
+    /// <summary>
+    /// Microsoft Graph for US Government L5 (DOD).
+    /// </summary>
+    USGovDoD,
 }
