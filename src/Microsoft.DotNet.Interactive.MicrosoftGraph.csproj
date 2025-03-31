@@ -27,7 +27,7 @@
     <PackageReference Include="Azure.Identity" Version="1.13.2" />
     <PackageReference Include="microsoft.dotnet.interactive" Version="1.0.0-beta.24229.4" />
     <PackageReference Include="microsoft.dotnet.interactive.csharp" Version="1.0.0-beta.24229.4" />
-    <PackageReference Include="Microsoft.Graph" Version="5.74.0" />
+    <PackageReference Include="Microsoft.Graph" Version="5.75.0" />
     <PackageReference Include="Microsoft.Graph.Beta" Version="5.13.0-preview" />
     <PackageReference Include="MinVer" Version="4.3.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
